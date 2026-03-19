@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'Server configuration error.' },
+        { status: 500 }
+      )
+    }
+
+    const resend = new Resend(apiKey)
+
     const { name, email, message } = await req.json()
 
-    // Basic validation
     if (!name || !email || !message) {
       return NextResponse.json(
         { error: 'All fields are required.' },
@@ -17,8 +24,8 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await resend.emails.send({
       from: 'Portfolio Contact <onboarding@resend.dev>',
-      to: 'onlystudyforrabindra@gmail.com',  // your verified Resend email
-      replyTo: email,                          // reply goes directly to the sender
+      to: 'onlystudyforrabindra@gmail.com',
+      replyTo: email,
       subject: `New message from ${name} — Portfolio`,
       html: `
         <div style="
@@ -85,7 +92,7 @@ export async function POST(req: NextRequest) {
             font-size: 10px; color: #7a93b8;
             letter-spacing: 0.1em;
           ">
-            Sent from rabindra.dev portfolio contact form
+            Sent from portfolio contact form
           </div>
         </div>
       `,
