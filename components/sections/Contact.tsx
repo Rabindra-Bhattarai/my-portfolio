@@ -20,20 +20,72 @@ const socials = [
   {
     icon: '@',
     label: 'Email',
-    value: 'your@email.com', // ← replace with your email
-    href: 'mailto:your@email.com',
+    value: 'onlystudyforrabindra@gmail.com',
+    href: 'onlystudyforrabindra@gmail.com',
   },
 ]
 
+type Status = 'idle' | 'loading' | 'success' | 'error'
+
 export default function Contact() {
   const ref = useScrollFadeIn()
-  const [submitted, setSubmitted] = useState(false)
+  const [status, setStatus] = useState<Status>('idle')
+  const [errorMsg, setErrorMsg] = useState('')
   const [form, setForm] = useState({ name: '', email: '', message: '' })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setSubmitted(true)
+    setStatus('loading')
+    setErrorMsg('')
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setErrorMsg(data.error || 'Something went wrong.')
+        setStatus('error')
+        return
+      }
+
+      setStatus('success')
+      setForm({ name: '', email: '', message: '' })
+
+    } catch {
+      setErrorMsg('Network error. Please try again.')
+      setStatus('error')
+    }
   }
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    background: 'var(--bg3)',
+    border: '1px solid var(--border)',
+    color: 'var(--white)',
+    fontFamily: 'var(--mono)',
+    fontSize: '12px',
+    padding: '14px 16px',
+    outline: 'none',
+    letterSpacing: '0.04em',
+    transition: 'border-color 0.25s',
+  }
+
+  const labelStyle: React.CSSProperties = {
+    fontFamily: 'var(--mono)',
+    fontSize: '10px',
+    color: 'var(--teal)',
+    letterSpacing: '0.2em',
+    textTransform: 'uppercase',
+    display: 'block',
+    marginBottom: '6px',
+  }
+
+  const isLoading = status === 'loading'
 
   return (
     <section id="contact" className="section" ref={ref as React.RefObject<HTMLElement>}>
@@ -46,7 +98,7 @@ export default function Contact() {
         alignItems: 'start',
       }}>
 
-        {/* Left — intro + socials */}
+        {/* ── LEFT: intro + socials ── */}
         <div className="fade-in delay-1">
           <p style={{
             fontFamily: 'var(--display)',
@@ -67,7 +119,7 @@ export default function Contact() {
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            {socials.map(social => (
+            {socials.map((social) => (
               <a
                 key={social.label}
                 href={social.href}
@@ -79,18 +131,17 @@ export default function Contact() {
                   padding: '18px 24px',
                   background: 'var(--bg3)',
                   border: '1px solid var(--border)',
-                  textDecoration: 'none',
-                  color: 'var(--white)',
+                  textDecoration: 'none', color: 'var(--white)',
                   borderLeft: '2px solid transparent',
                   transition: 'all 0.3s',
                 }}
-                onMouseEnter={e => {
+                onMouseEnter={(e) => {
                   const el = e.currentTarget as HTMLElement
                   el.style.borderLeftColor = 'var(--teal)'
                   el.style.background = 'var(--bg2)'
                   el.style.paddingLeft = '32px'
                 }}
-                onMouseLeave={e => {
+                onMouseLeave={(e) => {
                   const el = e.currentTarget as HTMLElement
                   el.style.borderLeftColor = 'transparent'
                   el.style.background = 'var(--bg3)'
@@ -103,7 +154,6 @@ export default function Contact() {
                     background: 'var(--bg2)', border: '1px solid var(--border)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '14px', fontFamily: 'var(--mono)',
-                    transition: 'border-color 0.3s',
                   }}>
                     {social.icon}
                   </div>
@@ -120,130 +170,167 @@ export default function Contact() {
                     </span>
                   </div>
                 </div>
-                <span style={{
-                  fontSize: '18px', color: 'var(--muted)',
-                  transition: 'color 0.3s, transform 0.3s',
-                }}>
-                  ↗
-                </span>
+                <span style={{ fontSize: '18px', color: 'var(--muted)' }}>↗</span>
               </a>
             ))}
           </div>
         </div>
 
-        {/* Right — form */}
+        {/* ── RIGHT: form ── */}
         <div className="fade-in delay-2">
-          <form
-            onSubmit={handleSubmit}
-            style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
-          >
-            {/* Name */}
-            <div>
-              <label style={{
-                fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--teal)',
-                letterSpacing: '0.2em', textTransform: 'uppercase',
-                display: 'block', marginBottom: '6px',
-              }}>
-                Name
-              </label>
-              <input
-                type="text"
-                required
-                value={form.name}
-                placeholder="Your name"
-                onChange={e => setForm({ ...form, name: e.target.value })}
-                style={{
-                  width: '100%', background: 'var(--bg3)',
-                  border: '1px solid var(--border)', color: 'var(--white)',
-                  fontFamily: 'var(--mono)', fontSize: '12px',
-                  padding: '14px 16px', outline: 'none',
-                  letterSpacing: '0.04em', transition: 'border-color 0.25s',
-                }}
-                onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--teal)'}
-                onBlur={e => (e.target as HTMLInputElement).style.borderColor = 'var(--border)'}
-              />
-            </div>
 
-            {/* Email */}
-            <div>
-              <label style={{
-                fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--teal)',
-                letterSpacing: '0.2em', textTransform: 'uppercase',
-                display: 'block', marginBottom: '6px',
+          {/* Success state */}
+          {status === 'success' ? (
+            <div style={{
+              background: 'var(--bg3)',
+              border: '1px solid var(--green)',
+              padding: '48px 32px',
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: '32px', marginBottom: '16px' }}>✓</div>
+              <div style={{
+                fontFamily: 'var(--display)', fontSize: '22px',
+                color: 'var(--green)', marginBottom: '12px',
               }}>
-                Email
-              </label>
-              <input
-                type="email"
-                required
-                value={form.email}
-                placeholder="your@email.com"
-                onChange={e => setForm({ ...form, email: e.target.value })}
-                style={{
-                  width: '100%', background: 'var(--bg3)',
-                  border: '1px solid var(--border)', color: 'var(--white)',
-                  fontFamily: 'var(--mono)', fontSize: '12px',
-                  padding: '14px 16px', outline: 'none',
-                  letterSpacing: '0.04em', transition: 'border-color 0.25s',
-                }}
-                onFocus={e => (e.target as HTMLInputElement).style.borderColor = 'var(--teal)'}
-                onBlur={e => (e.target as HTMLInputElement).style.borderColor = 'var(--border)'}
-              />
-            </div>
-
-            {/* Message */}
-            <div>
-              <label style={{
-                fontFamily: 'var(--mono)', fontSize: '10px', color: 'var(--teal)',
-                letterSpacing: '0.2em', textTransform: 'uppercase',
-                display: 'block', marginBottom: '6px',
-              }}>
-                Message
-              </label>
-              <textarea
-                required
-                value={form.message}
-                placeholder="What are you building?"
-                onChange={e => setForm({ ...form, message: e.target.value })}
-                style={{
-                  width: '100%', background: 'var(--bg3)',
-                  border: '1px solid var(--border)', color: 'var(--white)',
-                  fontFamily: 'var(--body)', fontSize: '14px',
-                  padding: '14px 16px', outline: 'none',
-                  minHeight: '120px', resize: 'vertical',
-                  transition: 'border-color 0.25s',
-                }}
-                onFocus={e => (e.target as HTMLTextAreaElement).style.borderColor = 'var(--teal)'}
-                onBlur={e => (e.target as HTMLTextAreaElement).style.borderColor = 'var(--border)'}
-              />
-            </div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={submitted}
-              style={{
+                Message sent.
+              </div>
+              <p style={{
                 fontFamily: 'var(--mono)', fontSize: '11px',
-                letterSpacing: '0.15em', textTransform: 'uppercase',
-                padding: '15px 32px', marginTop: '6px',
-                alignSelf: 'flex-start',
-                background: submitted ? 'var(--green)' : 'var(--teal)',
-                color: 'var(--bg)', border: 'none', cursor: submitted ? 'default' : 'pointer',
-                transition: 'background 0.3s, transform 0.2s',
-                clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))',
-              }}
-              onMouseEnter={e => {
-                if (!submitted) (e.currentTarget as HTMLButtonElement).style.background = '#0af0d8'
-              }}
-              onMouseLeave={e => {
-                if (!submitted) (e.currentTarget as HTMLButtonElement).style.background = 'var(--teal)'
-              }}
+                color: 'var(--muted)', letterSpacing: '0.08em', lineHeight: 1.7,
+              }}>
+                Thanks for reaching out. I&apos;ll get back to you soon.
+              </p>
+              <button
+                onClick={() => setStatus('idle')}
+                style={{
+                  marginTop: '24px',
+                  fontFamily: 'var(--mono)', fontSize: '10px',
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  padding: '10px 24px', background: 'transparent',
+                  border: '1px solid var(--border)', color: 'var(--muted)',
+                  cursor: 'pointer', transition: 'all 0.25s',
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLButtonElement
+                  el.style.borderColor = 'var(--teal)'
+                  el.style.color = 'var(--teal)'
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLButtonElement
+                  el.style.borderColor = 'var(--border)'
+                  el.style.color = 'var(--muted)'
+                }}
+              >
+                Send another →
+              </button>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleSubmit}
+              style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
             >
-              {submitted ? 'Message Sent ✓' : 'Send Message →'}
-            </button>
-          </form>
+              {/* Name */}
+              <div>
+                <label style={labelStyle}>Name</label>
+                <input
+                  type="text" required disabled={isLoading}
+                  value={form.name} placeholder="Your name"
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  style={{ ...inputStyle, opacity: isLoading ? 0.6 : 1 }}
+                  onFocus={(e) => (e.target.style.borderColor = 'var(--teal)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+                />
+              </div>
+
+              {/* Email */}
+              <div>
+                <label style={labelStyle}>Email</label>
+                <input
+                  type="email" required disabled={isLoading}
+                  value={form.email} placeholder="your@email.com"
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  style={{ ...inputStyle, opacity: isLoading ? 0.6 : 1 }}
+                  onFocus={(e) => (e.target.style.borderColor = 'var(--teal)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label style={labelStyle}>Message</label>
+                <textarea
+                  required disabled={isLoading}
+                  value={form.message} placeholder="What are you building?"
+                  onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  style={{
+                    ...inputStyle,
+                    fontFamily: 'var(--body)', fontSize: '14px',
+                    minHeight: '120px', resize: 'vertical',
+                    opacity: isLoading ? 0.6 : 1,
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = 'var(--teal)')}
+                  onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+                />
+              </div>
+
+              {/* Error banner */}
+              {status === 'error' && (
+                <div style={{
+                  fontFamily: 'var(--mono)', fontSize: '11px',
+                  color: 'var(--red)', padding: '10px 14px',
+                  border: '1px solid var(--red)',
+                  background: '#ff4d6d11', letterSpacing: '0.06em',
+                }}>
+                  ✕ {errorMsg}
+                </div>
+              )}
+
+              {/* Submit button */}
+              <button
+                type="submit" disabled={isLoading}
+                style={{
+                  fontFamily: 'var(--mono)', fontSize: '11px',
+                  letterSpacing: '0.15em', textTransform: 'uppercase',
+                  padding: '15px 32px', marginTop: '6px',
+                  alignSelf: 'flex-start',
+                  background: isLoading ? 'var(--teal2)' : 'var(--teal)',
+                  color: 'var(--bg)', border: 'none',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.3s',
+                  clipPath: 'polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px))',
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isLoading) (e.currentTarget as HTMLButtonElement).style.background = '#0af0d8'
+                }}
+                onMouseLeave={(e) => {
+                  if (!isLoading) (e.currentTarget as HTMLButtonElement).style.background = 'var(--teal)'
+                }}
+              >
+                {isLoading ? (
+                  <>
+                    <span style={{
+                      display: 'inline-block',
+                      width: '10px', height: '10px',
+                      border: '2px solid var(--bg)',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      animation: 'spin 0.7s linear infinite',
+                    }} />
+                    Sending…
+                  </>
+                ) : (
+                  'Send Message →'
+                )}
+              </button>
+            </form>
+          )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </section>
   )
 }
